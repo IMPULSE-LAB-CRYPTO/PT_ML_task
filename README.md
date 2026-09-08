@@ -114,6 +114,7 @@ class ThreatAnalyzer:
 запустите их с флагом `--full`, например:
 ```bash
 python src/features_v2.py --full
+```
 
 ## Локально без Docker (для быстрого тестирования)
 1. Установить зависимости:
