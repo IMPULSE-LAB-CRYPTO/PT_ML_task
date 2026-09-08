@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import TruncatedSVD
 
-# 1 -загружаем базовые фичи
+# 1 - загружаем базовые фичи
 df_behavior = pd.read_csv('data/host_features_v2.csv')
 df_ports = pd.read_csv('data/port_tfidf_features.csv')
 
@@ -56,6 +56,14 @@ X_combined = np.hstack((scaled_behavior, svd_ports, scaled_extra))
 kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
 clusters = kmeans.fit_predict(X_combined)
 
+# логика - находим кластеры, где меньше 20 объектов - аномалии (-1)
+cluster_counts = pd.Series(clusters).value_counts()
+small_clusters = cluster_counts[cluster_counts < 20].index.tolist()
+
+if small_clusters:
+    print(f"Обнаружены слишком маленькие кластеры (выбросы): {small_clusters}. Переводим их в статус Аномалии (-1).")
+    clusters = np.where(np.isin(clusters, small_clusters), -1, clusters)
+
 reducer = umap.UMAP(n_components=2, random_state=42, n_jobs=1)
 embedding = reducer.fit_transform(X_combined)
 
@@ -69,4 +77,4 @@ df_ui['cluster'] = clusters
 print(f"Итог: Всего хостов на карте: {len(df_ui)}. Из них скомпрометированных: {df_ui['is_compromised'].sum()}")
 
 df_ui.to_csv('data/ui_umap.csv', index=False)
-print("Готово! Сохранено в data/ui_umap.csv")
+print("Готово. Сохранено в data/ui_umap.csv")
