@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 import numpy as np
 from scipy.stats import entropy
@@ -7,9 +8,10 @@ cols = ['time', 'duration', 'src', 'src_port', 'dst', 'dst_port', 'protocol', 'p
 chunk_size = 500000
 frames = []
 # читаем 1 млн строк, чтобы сохранить скорость, но получить хорошую выборку
+FULL_PROCESS = '--full' in sys.argv
 for chunk in pd.read_csv('data/flows.txt.gz', compression='gzip', header=None, names=cols, chunksize=chunk_size):
     frames.append(chunk)
-    if len(frames) * chunk_size > 1000000:
+    if not FULL_PROCESS and len(frames) * chunk_size > 1000000:
         break
 df = pd.concat(frames)
 
